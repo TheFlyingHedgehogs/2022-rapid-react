@@ -204,83 +204,10 @@ object OI : SubsystemBase() {
         }
     }
 
-    val climbMode by Toggle { operatorController.getRawButton(8) }
-    val climbModeTrigger = Trigger { climbMode }
-
-    val climbMove get() = if (climbMode) operatorController.y else 0.0
-    val climbPistonForward = Trigger { if (climbMode) operatorController.getRawButtonPressed(11) else false }
-    val climbPistonReverse = Trigger { if (climbMode) operatorController.getRawButtonPressed(12) else false }
-
-    init {
-        climbPistonForward.whenActive({ Climb.pistons(DoubleSolenoid.Value.kForward) }, Climb)
-        climbPistonReverse.whenActive({ Climb.pistons(DoubleSolenoid.Value.kReverse) }, Climb)
-        climbModeTrigger.whileActiveContinuous({ Climb.openLoop(Volts(-climbMove * 8.0)) }, Climb)
-    }
-
-    val intakeTrigger = JoystickButton(operatorController, 1)
-
-    init {
-        intakeTrigger.whenActive(Intake::startIntake).whenInactive(Intake::stopIntake)
-    }
-
-    val intakeDown = Trigger { operatorController.pov != -1 }
-
-    init {
-        intakeDown.toggleWhenActive(StartEndCommand(Intake::openIntake, Intake::closeIntake, Intake))
-    }
-
-    val spinUpButton = JoystickButton(driverController, kY.value)
-    val dumpSpinUpButton = JoystickButton(driverController, kA.value)
-    val cancelButton = JoystickButton(driverController, kX.value)
-    val shootButton = JoystickButton(driverController, kB.value)
-
-    val rumbleTrigger = Trigger { Shooter.ready }
-
-    init {
-        spinUpButton.whileActiveContinuous(Shooter::spinUp)
-        dumpSpinUpButton.whileActiveContinuous(Shooter::spinUp)
-        cancelButton.whileActiveContinuous(Shooter::stopShooter)
-        shootButton.whenActive(Feeder::shoot)
-        rumbleTrigger.whileActiveOnce(
-            StartEndCommand(
-                { driverController.setRumble(kLeftRumble, 0.2) },
-                { driverController.setRumble(kLeftRumble, 0.0) }
-            ).withTimeout(1.0)
-        )
-    }
-
     val targetAlignButton = JoystickButton(driverController, kLeftBumper.value).and(JoystickButton(driverController, kRightBumper.value))
 
     init {
         targetAlignButton.whenActive(TargetAlign().until(targetAlignButton.negate()))
     }
 
-    val manualShoot by object {
-        // The time that the driver last had a manual speed button pressed
-        var lastUpdated = 0.seconds
-        // The return value, kept around so that it can be repeated for a few seconds after it's released
-        var value = -1.0
-
-        // Whenever the value is read, run this
-        operator fun getValue(thisRef: Any?, property: KProperty<*>): Double {
-            val newValue = when {
-                operatorController.getRawButton(1) -> 1.0
-                operatorController.getRawButton(2) -> 1.5
-                operatorController.getRawButton(3) -> 2.0
-                else -> -1.0
-            }
-
-            if (newValue != -1.0) {
-                // If a speed is selected, reset the timeout and set the output value.
-                lastUpdated = Timer.getFPGATimestamp().seconds
-                value = newValue
-            } else {
-                // Otherwise, check if the timeout has expired.  If it has, set the value to -1 (no manual speed)
-                if (Timer.getFPGATimestamp() - lastUpdated.value > 5.0) {
-                    value = -1.0
-                }
-            }
-            return value
-        }
-    }
 }

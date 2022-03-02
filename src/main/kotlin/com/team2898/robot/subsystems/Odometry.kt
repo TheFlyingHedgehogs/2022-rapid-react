@@ -10,10 +10,10 @@ import com.team2898.robot.VisionPoseProvider
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 
-object Odometry : PoseProvider by VisionPoseProvider(DifferentialDrivePoseProvider(
+object Odometry : PoseProvider by DifferentialDrivePoseProvider(
     Blah.navx,
     Drivetrain.leftEncoder,
-    Drivetrain.rightEncoder)) {
+    Drivetrain.rightEncoder) {
 
     object Blah {
         val navx = NAVX()

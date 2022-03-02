@@ -47,14 +47,9 @@ class Robot : TimedRobot() {
 //            BatteryLogger
         }
 
-        Intake
-        Vision
         Drivetrain.defaultCommand = TeleOp()
 
         SmartDashboard.putData("odometry", Odometry)
-        SmartDashboard.putData("climb", Climb)
-        SmartDashboard.putData("feeder", Feeder)
-        SmartDashboard.putData("shooter", Shooter)
     }
 
     /**
