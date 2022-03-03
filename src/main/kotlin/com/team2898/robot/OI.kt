@@ -12,6 +12,7 @@ import com.team2898.robot.subsystems.Climb
 import com.team2898.robot.subsystems.Feeder
 import com.team2898.robot.subsystems.Intake
 import com.team2898.robot.subsystems.Shooter
+import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.*
 import edu.wpi.first.wpilibj.GenericHID.RumbleType.kLeftRumble
 import edu.wpi.first.wpilibj.XboxController.Button.*
@@ -38,7 +39,7 @@ object OI : SubsystemBase() {
      * Threshold below which [process] will return 0.
      * 0.1 historically used, but optimal value unknown.
      */
-    private const val DEADZONE_THRESHOLD = 0.05
+    private const val DEADZONE_THRESHOLD = 0.1
     private const val TRIG_DEADZONE_THRESHOLD = 0.05
 
     /**
@@ -50,14 +51,15 @@ object OI : SubsystemBase() {
         square: Boolean = false,
         cube: Boolean = false
     ): Double {
-        var output = 0.0
+        var output = input
 
         if (deadzone) {
-            output = if (abs(input) < DEADZONE_THRESHOLD) {
-                0.0
-            } else {
-                input
-            }
+//            output = if (abs(input) < DEADZONE_THRESHOLD) {
+//                0.0
+//            } else {
+//                input
+//            }
+            output = MathUtil.applyDeadband(output, DEADZONE_THRESHOLD)
         }
 
         if (square) {
@@ -207,7 +209,7 @@ object OI : SubsystemBase() {
     val targetAlignButton = JoystickButton(driverController, kLeftBumper.value).and(JoystickButton(driverController, kRightBumper.value))
 
     init {
-        targetAlignButton.whenActive(TargetAlign().until(targetAlignButton.negate()))
+        targetAlignButton.whenActive(TargetAlign().withInterrupt(targetAlignButton.negate()))
     }
 
 }
